@@ -1,0 +1,24 @@
+<component name="libraryTable">
+  <library name="chat-1.0.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/chat-1.0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/Core-1.2-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/cuboid-1.0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/nametag-1.0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/menu-1.0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/other-1.0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/ProtocolLib-v1_7_R4-3.7.0-BETA.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/qLib-LATEST.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/Rhea-Plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spigot-api-1.7.10-R0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spigot-server-1.7.10-R0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/StaffUtils-1.0.0-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/util-1.0.1-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/spigot-api-1.7.10-R0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spigot-server-1.7.10-R0.1-SNAPSHOT.jar!/" />
+    </SOURCES>
+  </library>
+</component>

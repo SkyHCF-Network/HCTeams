@@ -1,0 +1,5 @@
+name: HCTeams
+version: 1.0.0
+authors: [FrozenOrb, Hylist Games, Preceding]
+main: net.frozenorb.foxtrot.Foxtrot
+depend: [ qLib, ProtocolLib ]

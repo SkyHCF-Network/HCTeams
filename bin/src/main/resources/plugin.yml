@@ -1,0 +1,6 @@
+name: iHCF
+version: 1.0
+author: Centile Team
+description: cracked ihcf
+main: net.frozenorb.foxtrot.Foxtrot
+depend: [ qLib, ProtocolLib ]

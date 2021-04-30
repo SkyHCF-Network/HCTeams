@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="unnamed2">
+    <output-path>$PROJECT_DIR$/out/artifacts/unnamed2</output-path>
+    <root id="archive" name="unnamed.jar">
+      <element id="module-output" name="HCTeams" />
+      <element id="library" level="module" name="Maven: net.hylist:spigot-api:1.7.10-R0.1-SNAPSHOT" module-name="HCTeams" />
+      <element id="library" level="module" name="Maven: net.hylist:spigot-server:1.7.10-R0.1-SNAPSHOT" module-name="HCTeams" />
+      <element id="library" level="module" name="Maven: net.frozenorb:qlib:1.0-SNAPSHOT" module-name="HCTeams" />
+      <element id="library" level="module" name="Maven: me.abhi.core:mCore-v1.28:1.28" module-name="HCTeams" />
+      <element id="library" level="module" name="Maven: com.comphenix.protocol:ProtocolLib:4.4.0-SNAPSHOT" module-name="HCTeams" />
+      <element id="library" level="project" name="Maven: org.projectlombok:lombok:1.16.16" />
+      <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.6" />
+    </root>
+  </artifact>
+</component>

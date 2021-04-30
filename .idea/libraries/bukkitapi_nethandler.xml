@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="bukkitapi-nethandler">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../Plugins/MineHQ Plugins/Source Codes/bukkitapi-nethandler.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

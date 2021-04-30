@@ -1,0 +1,82 @@
+Mongo:
+  Host: 'localhost'
+  DBName: 'Dev'
+serverName: 'SkyHCF'
+networkWebsite: www.skyhcf.net
+statsRoot: www.skyhcf.net
+tab:
+  serverName: '&b&lSkyHCF'
+  sectionColor: '&b'
+  infoColor: '&f'
+scoreboard:
+  title: "&b&lSkyHCF &7⎜ &fMap 1"
+nightmare:
+  enabled: false
+  worldName: "NightmareEvent"
+glowstoneMountain: false
+cavern: false
+startingTimer: false
+forceInvites: true
+squads: false
+idleCheck: true
+uhcHealing: false
+passiveTag: true
+allowBoosting: false
+waterPlacementInClaims: false
+blockRemoval: false
+rodPrevention: false
+skybridgePrevention: false
+reduceArmorDamage: true
+blockEntitiesThroughPortals: true
+archerTagColor: YELLOW
+defaultRelationColor: RED
+legions: false
+pvpClasses:
+  archer: true
+  bard: true
+  rogue: true
+  ranger: true
+  mage: true
+minerWorld:
+  regen:
+    COAL_ORE: 30
+    IRON_ORE: 60
+    GOLD_ORE: 90
+    DIAMOND_ORE: 120
+potions:
+  REGEN:
+    splash: false
+    drinkables: false
+  SPEED:
+    splash: true
+    drinkables: true
+  FIRE_RESISTANCE:
+    splash: true
+    drinkables: true
+  POISON:
+    splash: true
+    drinkables: false
+  INSTANT_HEAL:
+    splash: true
+    drinkables: true
+  NIGHT_VISION:
+    splash: true
+    drinkables: true
+  WEAKNESS:
+    splash: false
+    drinkables: false
+  STRENGTH:
+    splash: false
+    drinkables: false
+  SLOWNESS:
+    splash: true
+    drinkables: false
+  INSTANT_DAMAGE:
+    splash: false
+    drinkables: false
+  WATER_BREATHING:
+    splash: true
+    drinkables: true
+  INVISIBILITY:
+    splash: false
+    drinkables: true

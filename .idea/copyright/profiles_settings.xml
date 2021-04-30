@@ -1,0 +1,8 @@
+<component name="CopyrightManager">
+  <settings default="KermanIsPretty">
+    <module2copyright>
+      <element module="All" copyright="KermanIsPretty" />
+    </module2copyright>
+    <LanguageOptions name="Groovy" />
+  </settings>
+</component>
