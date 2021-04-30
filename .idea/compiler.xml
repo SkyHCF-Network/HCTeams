@@ -2,17 +2,18 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Maven default annotation processors profile" enabled="true">
+      <profile default="true" name="Default" enabled="true">
+        <processorPath useClasspath="false" />
+      </profile>
+      <profile name="Annotation profile for HCTeams" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="HCTeams (1)" />
-        <module name="HCTeams (2) (net.frozenorb)" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.16.16/lombok-1.16.16.jar" />
+        </processorPath>
+        <module name="HCTeams" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="HCTeams (1)" target="1.5" />
-      <module name="HCTeams (2) (net.frozenorb)" target="1.5" />
-    </bytecodeTargetLevel>
   </component>
 </project>
