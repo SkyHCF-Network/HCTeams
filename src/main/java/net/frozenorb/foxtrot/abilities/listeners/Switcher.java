@@ -132,7 +132,7 @@ public class Switcher implements Listener {
         shooter.teleport(hit);
         hit.teleport(loc);
         ArrayList<String> shooterMsg = new ArrayList<>();
-        shooterMsg.add(CC.Color("&b\u00BB&e You have hit " + hit.getDisplayName() + " with a &b&lSwitcher Ball!"));
+        shooterMsg.add(CC.Color("&b\u00BB&e You have hit " + hit.getDisplayName() + "&e with a &b&lSwitcher Ball!"));
         shooterMsg.add(CC.Color("&b\u00BB&e You have switched places with them!"));
         ArrayList<String> hitMsg = new ArrayList<>();
         hitMsg.add(CC.Color("&b\u00BB&e You have been hit by &c" + shooter.getDisplayName() + "&e with a &b&lSwitcher Ball!"));

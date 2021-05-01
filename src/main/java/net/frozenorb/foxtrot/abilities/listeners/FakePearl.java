@@ -37,6 +37,7 @@ public class FakePearl implements Listener {
         pearl.setItemMeta(meta);
         if (!(player.getItemInHand().getType() == Material.ENDER_PEARL)) return;
         if (!(event.getItem().hasItemMeta())) return;
+        if (!(event.getItem().getItemMeta().hasLore())) return;
         if (!event.getItem().getItemMeta().getLore().contains(CC.Color("&7to shoot a pearl to trick your enemies!")))
             return;
 
@@ -50,7 +51,7 @@ public class FakePearl implements Listener {
             }
 
             if (Foxtrot.getInstance().getFakePearl().onCooldown(player)) {
-                player.sendMessage(CC.Color("&4&lFake Pearl&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getFakePearl().getRemainingMilis(player) / 1000) + "&c!"));
+                player.sendMessage(CC.Color("&b&lFake Pearl&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getFakePearl().getRemainingMilis(player) / 1000) + "&c!"));
                 player.updateInventory();
                 event.setCancelled(true);
                 return;

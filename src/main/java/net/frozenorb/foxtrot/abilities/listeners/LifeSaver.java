@@ -25,7 +25,7 @@ public class LifeSaver implements Listener {
         Player p = event.getPlayer();
         if (!p.getItemInHand().hasItemMeta()) return;
         if (p.getItemInHand().getType() != Material.WATCH) return;
-        if (!event.getAction().name().toUpperCase().contains("_BLOCK")) return;
+        if (event.getAction().equals(Action.PHYSICAL)) return;
         if (!p.getItemInHand().getItemMeta().getLore().contains(CC.Color("&7during this cooldown if you go down to 2 hearts you will be healed fully!"))) return;
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             if (event.getClickedBlock() != null) {
@@ -44,7 +44,7 @@ public class LifeSaver implements Listener {
         Player player = event.getPlayer();
         if (!player.getItemInHand().hasItemMeta()) return;
         if (player.getItemInHand().getType() != Material.WATCH) return;
-        if (!event.getAction().name().toUpperCase().contains("_BLOCK")) return;
+        if (event.getAction().equals(Action.PHYSICAL)) return;
         if (!player.getItemInHand().getItemMeta().getLore().contains(CC.Color("&7during this cooldown if you go down to 2 hearts you will be healed fully!"))) return;
 
         if (DTRBitmask.SAFE_ZONE.appliesAt(player.getLocation())){

@@ -42,6 +42,7 @@ net\frozenorb\foxtrot\pvpclasses\pvpclasses\BardClass$1.class
 net\frozenorb\foxtrot\listener\TeamListener$2.class
 net\frozenorb\foxtrot\commands\ConquestRewardKeyCommand.class
 net\frozenorb\foxtrot\pvpclasses\PvPClassHandler.class
+net\frozenorb\foxtrot\abilities\listeners\ExoticBone.class
 net\frozenorb\foxtrot\team\commands\team\chatspy\TeamChatSpyListCommand.class
 net\frozenorb\foxtrot\listener\SignSubclaimListener.class
 net\frozenorb\foxtrot\team\commands\RecalculatePointsCommand.class
@@ -190,7 +191,6 @@ net\frozenorb\foxtrot\commands\SaveRedisCommand.class
 net\frozenorb\foxtrot\team\commands\team\TeamForceLeaveCommand.class
 net\frozenorb\foxtrot\events\citadel\commands\CitadelRescanChestsCommand.class
 net\frozenorb\foxtrot\team\claims\VisualClaimType.class
-net\frozenorb\foxtrot\abilities\listeners\Paralyser.class
 net\frozenorb\foxtrot\persist\StringPersistMap$2.class
 net\frozenorb\foxtrot\map\killstreaks\arcanetypes\Gapple.class
 net\frozenorb\foxtrot\team\commands\pvp\PvPTimeCommand.class

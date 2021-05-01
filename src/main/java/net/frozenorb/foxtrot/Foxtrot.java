@@ -214,8 +214,6 @@ public class Foxtrot extends JavaPlugin {
     private Cooldown portablebard = new Cooldown();
     public Cooldown getPortableBard(){return this.portablebard; }
 
-    private Cooldown astrokit = new Cooldown();
-    public Cooldown getAstroKit(){ return this.astrokit; }
     private Predicate<Player> inDuelPredicate = (player) -> false;
 
     @Getter @Setter private boolean undead;

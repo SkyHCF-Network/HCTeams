@@ -1,7 +1,3 @@
-/*
- * Made by KermanIsPretty
- */
-
 package net.frozenorb.foxtrot.abilities.command;
 
 import net.frozenorb.foxtrot.Foxtrot;
@@ -28,9 +24,9 @@ public class AbilityCommand {
             sender.sendMessage(ChatColor.GREEN + "You have given " + target.getName() + " " + String.valueOf(amount) + " switchers!");
             return;
         }
-        if (item.equalsIgnoreCase("paralyser")){
-            target.getInventory().addItem(new ItemStack[] { new ItemBuilder(Material.BLAZE_ROD).name("&b&lParalyser").lore(Arrays.asList(CC.Color("&7Hit a player 3 times in a row with this item"), CC.Color("&7to restrict them from building for 15 seconds!"))).amount(amount).build()});
-            sender.sendMessage(ChatColor.GREEN + "You have given " + target.getName() + " " + String.valueOf(amount) + " paralysers!");
+        if (item.equalsIgnoreCase("exoticbone")){
+            target.getInventory().addItem(new ItemStack[] { new ItemBuilder(Material.BONE).name("&b&lExotic Bone").lore(Arrays.asList(CC.Color("&7Hit a player 3 times in a row with this item"), CC.Color("&7to restrict them from building for 15 seconds!"))).enchant(Enchantment.DURABILITY).amount(amount).build()});
+            sender.sendMessage(ChatColor.GREEN + "You have given " + target.getName() + " " + String.valueOf(amount) + " exotic bones!");
             return;
         }
         if (item.equalsIgnoreCase("fakepearl")){
@@ -73,7 +69,7 @@ public class AbilityCommand {
         sender.sendMessage((CC.Color("&7&m---------------------------")));
         sender.sendMessage((CC.Color("&6&lAbility List")));
         sender.sendMessage((CC.Color("&7- &b&lSwitcher")));
-        sender.sendMessage((CC.Color("&7- &b&lParalyser")));
+        sender.sendMessage((CC.Color("&7- &b&lExotic Bone")));
         sender.sendMessage((CC.Color("&7- &b&lFakePearl")));
         sender.sendMessage((CC.Color("&7- &b&lRageSoup")));
         sender.sendMessage((CC.Color("&7- &b&lNinjaStar")));

@@ -5,9 +5,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+import com.sun.javafx.UnmodifiableArrayList;
 import net.frozenorb.basic.Basic;
 import net.frozenorb.command.TPSCommand;
 import net.frozenorb.foxtrot.team.claims.LandBoard;
+import net.frozenorb.foxtrot.util.Cooldown;
 import net.frozenorb.foxtrot.util.Cooldowns;
 import net.frozenorb.qlib.util.TPSUtils;
 import net.frozenorb.qmodsuite.qModSuite;
@@ -42,6 +44,7 @@ import net.frozenorb.qlib.scoreboard.ScoreFunction;
 import net.frozenorb.qlib.scoreboard.ScoreGetter;
 import net.frozenorb.qlib.util.LinkedList;
 import net.frozenorb.qlib.util.TimeUtils;
+import net.frozenorb.foxtrot.util.Cooldown;
 import org.spigotmc.TicksPerSecondCommand;
 
 public class FoxtrotScoreGetter implements ScoreGetter {
@@ -186,9 +189,8 @@ public class FoxtrotScoreGetter implements ScoreGetter {
         if (Cooldowns.isOnCooldown("grapple", player)) {
         scores.add((String) ("&c&lGrappling Hook&7: &f" + ScoreFunction.TIME_SIMPLE.apply((Float) (Cooldowns.getCooldownForPlayerLong("grapple", player) / 1000.0f))));
     }
-        if (Cooldowns.isOnCooldown("booster", player)) {
-            scores.add((String) ("&b&lBooster&7: &f" + ScoreFunction.TIME_SIMPLE.apply((Float) (Cooldowns.getCooldownForPlayerLong("booster", player) / 1000.0f))));
-
+        if (Foxtrot.getInstance().getPartnerItem().onCooldown(player)) {
+            scores.add((String) ("&d&lPartner Item&7: &c" + df.format(Foxtrot.getInstance().getPartnerItem().getRemainingMilis(player) / 1000.0f) + "&cs"));
         }
 
         ConquestGame conquest = Foxtrot.getInstance().getConquestHandler().getGame();
@@ -248,8 +250,8 @@ public class FoxtrotScoreGetter implements ScoreGetter {
         if (player.hasMetadata("frozen")) {
             scores.add("&4&lFrozen&7:");
             scores.add("&r &7» &rYou have been frozen.");
-            scores.add("&r &7» &fPlease join our discord&7:");
-            scores.add("&r &7» &bhttps://www.skyhcf.net/discord");
+            scores.add("&r &7» &fJoin our TeamSpeak3&7:");
+            scores.add("&r &7» &bts.skyhcf.net");
         }
         if (!scores.isEmpty()) {
             // 'Top' and bottom.

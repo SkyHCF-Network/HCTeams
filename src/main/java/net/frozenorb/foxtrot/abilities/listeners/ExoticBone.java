@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class Paralyser implements Listener {
+public class ExoticBone implements Listener {
 
     public static HashMap<UUID, Player> hitOnce = new HashMap<>();
     public static HashMap<UUID, Player> hitTwice = new HashMap<>();
@@ -39,16 +39,16 @@ public class Paralyser implements Listener {
         Player attacker = (Player) event.getDamager();
         Player attacked = (Player) event.getEntity();
         Team attackerTeam = Foxtrot.getInstance().getTeamHandler().getTeam(attacker);
-        ItemStack buildStick = new ItemStack(Material.BLAZE_ROD, attacker.getItemInHand().getAmount() - 1);
+        ItemStack buildStick = new ItemStack(Material.BONE, attacker.getItemInHand().getAmount() - 1);
         ItemMeta meta = buildStick.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
         lore.add(CC.Color("&7Hit a player 3 times in a row with this item"));
         lore.add(CC.Color("&7to restrict them from building for 15 seconds!"));
         meta.setLore(lore);
-        meta.setDisplayName(CC.Color("&b&lParalyser"));
+        meta.setDisplayName(CC.Color("&b&lExotic Bone"));
         buildStick.setItemMeta(meta);
         if (!attacker.getItemInHand().hasItemMeta()) return;
-        if (attacker.getItemInHand().getType() != Material.BLAZE_ROD) return;
+        if (attacker.getItemInHand().getType() != Material.BONE) return;
         if (!attacker.getItemInHand().getItemMeta().getLore().contains(CC.Color("&7to restrict them from building for 15 seconds!"))) return;
 
         if (Foxtrot.getInstance().getPartnerItem().onCooldown(attacker)){
@@ -78,7 +78,7 @@ public class Paralyser implements Listener {
         }
 
         if (Foxtrot.getInstance().getAntibuildstick().onCooldown(attacker)){
-            attacker.sendMessage(CC.Color("&b&lParalyser&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getAntibuildstick().getRemainingMilis(attacker) / 1000) + "&c!"));
+            attacker.sendMessage(CC.Color("&b&lExotic Bone&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getAntibuildstick().getRemainingMilis(attacker) / 1000) + "&c!"));
             attacker.updateInventory();
             event.setCancelled(true);
             return;
@@ -110,10 +110,10 @@ public class Paralyser implements Listener {
                     Foxtrot.getInstance().getRestricted().applyCooldown(attacked, 15 * 1000);
 
                     ArrayList<String> attackerMsg = new ArrayList<>();
-                    attackerMsg.add(CC.Color("&b\u00BB &eYou have hit " + attacked.getDisplayName() + "&c with a &4&lParalyser&c!"));
+                    attackerMsg.add(CC.Color("&b\u00BB &eYou have hit " + attacked.getDisplayName() + "&e with a &b&lExotic Bone&e!"));
                     attackerMsg.add(CC.Color("&b\u00BB &eYou have restricted their building for &c&l15&c seconds!"));
                     ArrayList<String> attackedMsg = new ArrayList<>();
-                    attackedMsg.add(CC.Color("&b\u00BB &eYou have been hit with a &b&lParalyserk&c!"));
+                    attackedMsg.add(CC.Color("&b\u00BB &eYou have been hit with a &b&lExotic Bone&e!"));
                     attackedMsg.add(CC.Color("&b\u00BB &eYour building has been restricted for &c&l15&c seconds!"));
 
                     attackerMsg.forEach(str -> attacker.sendMessage(CC.Color(str)));
@@ -134,7 +134,7 @@ public class Paralyser implements Listener {
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             if (event.getClickedBlock() != null) {
                 if (Foxtrot.getInstance().getAntibuildstick().onCooldown(p)) {
-                    event.getPlayer().sendMessage(CC.Color("&4&lParalyser&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getAntibuildstick().getRemainingMilis(event.getPlayer()) / 1000) + "&c!"));
+                    event.getPlayer().sendMessage(CC.Color("&b&lExotic Bone&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getAntibuildstick().getRemainingMilis(event.getPlayer()) / 1000) + "&c!"));
                     p.updateInventory();
                     event.setCancelled(true);
                     return;

@@ -62,9 +62,10 @@ public class RageSoup implements Listener {
             message.add("");
             message.forEach(player::sendMessage);
 
-            if (player.getItemInHand().getAmount() == 1) player.setItemInHand(null);
 
-            player.getItemInHand().setAmount(player.getItemInHand().getAmount() - 1);
+            if(player.getItemInHand().getAmount() > 1) player.getItemInHand().setAmount(player.getItemInHand().getAmount() - 1);
+            else player.setItemInHand(null);
+
 
             Foxtrot.getInstance().getRageSoup().applyCooldown(player, 60 * 1000);
             Foxtrot.getInstance().getPartnerItem().applyCooldown(player, 10 * 1000);

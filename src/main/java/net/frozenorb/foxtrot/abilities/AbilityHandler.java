@@ -15,7 +15,7 @@ public class AbilityHandler {
     private void init(){
         PluginManager pm = Foxtrot.getInstance().getServer().getPluginManager();
         pm.registerEvents(new Switcher(), plugin);
-        pm.registerEvents(new Paralyser(), plugin);
+        pm.registerEvents(new ExoticBone(), plugin);
         pm.registerEvents(new FakePearl(), plugin);
         pm.registerEvents(new RageSoup(), plugin);
         pm.registerEvents(new NinjaStar(), plugin);
