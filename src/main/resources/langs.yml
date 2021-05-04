@@ -1,0 +1,13 @@
+langs:
+  scoreboard:
+    type:
+      teamFocus:
+        - ""
+        - "&4&lTeam&7: &f%team%"
+        - "&4&lDTR&7: &f%dtr%"
+        - "&4&lOnline&7: &f%online%"
+  messages:
+    type:
+      team:
+        focus:  "&d%player% &ehas focused &d%enemy%&e!"
+        display: "&e%player% has created a waypoint for %team%'s HQ!"

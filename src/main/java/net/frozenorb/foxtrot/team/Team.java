@@ -12,6 +12,8 @@
 
 package net.frozenorb.foxtrot.team;
 
+import com.cheatbreaker.api.CheatBreakerAPI;
+import com.cheatbreaker.api.object.CBWaypoint;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 
@@ -30,10 +32,14 @@ import net.frozenorb.foxtrot.persist.maps.KillsMap;
 import net.frozenorb.foxtrot.team.claims.Claim;
 import net.frozenorb.foxtrot.team.claims.LandBoard;
 import net.frozenorb.foxtrot.team.claims.Subclaim;
+import net.frozenorb.foxtrot.team.commands.team.TeamDisplayCommand;
+import net.frozenorb.foxtrot.team.commands.team.TeamFocusCommand;
 import net.frozenorb.foxtrot.team.dtr.DTRBitmask;
 import net.frozenorb.foxtrot.team.dtr.DTRHandler;
 import net.frozenorb.foxtrot.team.track.TeamActionTracker;
 import net.frozenorb.foxtrot.team.track.TeamActionType;
+import net.frozenorb.foxtrot.util.CC;
+import net.frozenorb.foxtrot.util.ChatUtils;
 import net.frozenorb.foxtrot.util.CuboidRegion;
 import net.frozenorb.qlib.economy.FrozenEconomyHandler;
 import net.frozenorb.qlib.qLib;
@@ -56,17 +62,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import redis.clients.jedis.Jedis;
 
+import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
 
 public class Team {
 
     // Constants //
-    public static final DecimalFormat DTR_FORMAT = new DecimalFormat("0.00");
-    public static final String GRAY_LINE = ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH + StringUtils.repeat("-", 53);
-    public static final ChatColor ALLY_COLOR = ChatColor.BLUE;
-    public static final int MAX_CLAIMS = 2;
-    public static final int MAX_FORCE_INVITES = 5;
+    public static DecimalFormat DTR_FORMAT = new DecimalFormat("0.00");
+    public static String GRAY_LINE = ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH + StringUtils.repeat("-", 53);
+    public static ChatColor ALLY_COLOR = ChatColor.BLUE;
+    public static int MAX_CLAIMS = 2;
+    public static int MAX_FORCE_INVITES = 5;
 
     // Internal //
     @Getter private boolean needsSave = false;
@@ -76,6 +84,10 @@ public class Team {
     @Getter @Setter private ObjectId uniqueId;
     @Getter private String name;
     @Getter private Location HQ;
+    @Getter private RallyPoint Rally;
+    @Getter private CBWaypoint HQWaypoint;
+    @Getter private CBWaypoint TeamHQWaypoint;
+    @Getter private CBWaypoint FocusedTeamHQWaypoint;
     @Getter private double balance;
     @Getter private double DTR;
     @Getter private long DTRCooldown;
@@ -86,10 +98,15 @@ public class Team {
     @Getter private Set<UUID> captains = new HashSet<>();
     @Getter private Set<UUID> coleaders = new HashSet<>();
     @Getter private Set<UUID> invitations = new HashSet<>();
+    @Getter private Set<UUID> subclaimPermissions = new HashSet<>();
+    @Getter private Set<UUID> rallyPermissions = new HashSet<>();
+    @Getter private Set<UUID> displayPermissions = new HashSet<>();
     @Getter private Set<ObjectId> allies = new HashSet<>();
     @Getter private Set<ObjectId> requestedAllies = new HashSet<>();
+    @Getter private Set<String> usedUpgrades = new HashSet<>();
     @Getter private String announcement;
     @Getter private int maxOnline = -1;
+    @Getter @Setter private int teamfightsWon = 0;
     @Getter private boolean powerFaction = false;
     @Getter private int lives = 0;
     @Getter private int points = 0;
@@ -99,23 +116,25 @@ public class Team {
     @Getter private int deaths = 0;
     @Getter private int citadelsCapped = 0;
     @Getter private int killstreakPoints = 0;
-    @Getter private int playtimePoints = 0;
 
     @Getter private int spawnersInClaim = 0;
     @Getter private int spentPoints = 0; // points spent on faction upgrades (kinda aids)
 
-	@Getter private Map<String, Integer> upgradeToTier = new HashMap<>();
+    @Getter private Map<String, Integer> upgradeToTier = new HashMap<>();
 
     @Getter private int forceInvites = MAX_FORCE_INVITES;
     @Getter private Set<UUID> historicalMembers = new HashSet<>(); // this will store all players that were once members
 
     // Not persisted //
+    @Getter @Setter private ChatColor teamColor;
     @Getter @Setter private UUID focused;
     @Getter @Setter private long lastRequestReport;
-    
+
     @Getter @Setter private int bards;
     @Getter @Setter private int archers;
     @Getter @Setter private int rogues;
+
+    private Team factionFocused;
 
     public Team(String name) {
         this.name = name;
@@ -190,8 +209,35 @@ public class Team {
         }
     }
 
+    public void setRally(RallyPoint rally) {
+        if(this.Rally != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().removeWaypoint(player, this.Rally.getCbWaypoint()));
+        if(rally != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().sendWaypoint(player, rally.getCbWaypoint()));
+        this.Rally = rally;
+    }
+
+    public void setFactionHQRally(CBWaypoint teamhq) {
+        if (this.TeamHQWaypoint != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().removeWaypoint(player, this.TeamHQWaypoint));
+        if (teamhq != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().sendWaypoint(player, teamhq));
+        this.TeamHQWaypoint = teamhq;
+    }
+
+    public void setFocusedFactionHQ(CBWaypoint focusedhq){
+        if (this.FocusedTeamHQWaypoint != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().removeWaypoint(player, this.FocusedTeamHQWaypoint));
+        if (focusedhq != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().sendWaypoint(player, focusedhq));
+        this.FocusedTeamHQWaypoint = focusedhq;
+    }
+
+    public void setHQWaypoint(CBWaypoint rally) {
+        if(this.HQWaypoint != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().removeWaypoint(player, this.HQWaypoint));
+        if(rally != null) getOnlineMembers().forEach(player -> CheatBreakerAPI.getInstance().sendWaypoint(player, rally));
+
+        this.HQWaypoint = rally;
+    }
+
+
     public void addMember(UUID member) {
         if (members.add(member)) {
+            sendWaypoint(member);
             historicalMembers.add(member);
 
             if (this.loading) return;
@@ -290,7 +336,7 @@ public class Team {
         String oldHQ = this.HQ == null ? "None" : (getHQ().getBlockX() + ", " + getHQ().getBlockY() + ", " + getHQ().getBlockZ());
         String newHQ = hq == null ? "None" : (hq.getBlockX() + ", " + hq.getBlockY() + ", " + hq.getBlockZ());
         this.HQ = hq;
-
+        setHQWaypoint(hq == null ? null : new CBWaypoint("Home", hq, Color.WHITE.getRGB(), true, true));
         if (this.loading) return;
         TeamActionTracker.logActionAsync(this, TeamActionType.HEADQUARTERS_CHANGED, ImmutableMap.of(
                 "oldHq", oldHQ,
@@ -339,6 +385,64 @@ public class Team {
         return true;
     }
 
+    public void setRallyPermission(UUID changer, UUID uuid, boolean allowed) {
+        if(allowed)
+            getRallyPermissions().add(uuid);
+        else
+            getRallyPermissions().remove(uuid);
+
+        if (this.loading) return;
+        TeamActionTracker.logActionAsync(this, allowed ? TeamActionType.RALLY_PERMISSION_ADD : TeamActionType.RALLY_PERMISSION_REMOVE, ImmutableMap.of(
+                "changer", changer.toString(),
+                "uuid", uuid.toString()
+        ));
+
+        flagForSave();
+    }
+
+    public void setDisplayPermission(UUID changer, UUID uuid, boolean allowed) {
+        if(allowed)
+            getDisplayPermissions().add(uuid);
+        else
+            getDisplayPermissions().remove(uuid);
+
+        if (this.loading) return;
+        TeamActionTracker.logActionAsync(this, allowed ? TeamActionType.DISPLAY_PERMISSION_ADD : TeamActionType.DISPLAY_PERMISSION_REMOVE, ImmutableMap.of(
+                "changer", changer.toString(),
+                "uuid", uuid.toString()
+        ));
+
+        flagForSave();
+    }
+
+    public boolean hasRallyPermission(UUID uuid) {
+        return isCoLeader(uuid) || isOwner(uuid) || isCaptain(uuid) || getRallyPermissions().contains(uuid);
+    }
+
+    public boolean hasDisplayPermission(UUID uuid) {
+        return isCoLeader(uuid) || isOwner(uuid) || isCaptain(uuid) || getRallyPermissions().contains(uuid);
+    }
+
+    public void setSubclaimPermission(UUID changer, UUID uuid, boolean allowed) {
+        if(allowed)
+            getSubclaimPermissions().add(uuid);
+        else
+            getSubclaimPermissions().remove(uuid);
+
+        if (this.loading) return;
+        TeamActionTracker.logActionAsync(this, allowed ? TeamActionType.SUBCLAIM_PERMISSION_ADD : TeamActionType.SUBCLAIM_PERMISSION_REMOVE, ImmutableMap.of(
+                "changer", changer.toString(),
+                "uuid", uuid.toString()
+        ));
+
+        flagForSave();
+    }
+
+    public boolean hasSubclaimPermission(UUID uuid) {
+        return isCoLeader(uuid) || isOwner(uuid) || isCaptain(uuid) || getSubclaimPermissions().contains(uuid);
+    }
+
+
     public void disband() {
         try {
             if (owner != null) {
@@ -366,6 +470,7 @@ public class Team {
 
         for (UUID uuid : members) {
             Foxtrot.getInstance().getChatModeMap().setChatMode(uuid, ChatMode.PUBLIC);
+            clearWaypoint(uuid);
         }
 
         Foxtrot.getInstance().getTeamHandler().removeTeam(this);
@@ -378,7 +483,7 @@ public class Team {
 
                     @Override
                     public Object execute(Jedis redis) {
-                        redis.del(  "fox_teams." + name.toLowerCase());
+                        redis.del("fox_teams." + name.toLowerCase());
                         return (null);
                     }
 
@@ -394,7 +499,7 @@ public class Team {
     }
 
     public void rename(String newName) {
-        final String oldName = name;
+        String oldName = name;
 
         Foxtrot.getInstance().getTeamHandler().removeTeam(this);
 
@@ -432,18 +537,24 @@ public class Team {
         flagForSave();
     }
 
+    public void setWonTeamfights(int teamfightsWon) {
+        this.teamfightsWon = teamfightsWon;
+        recalculatePoints();
+        flagForSave();
+    }
+
     public void setKills(int kills) {
         this.kills = kills;
         recalculatePoints();
         flagForSave();
     }
-    
+
     public void setDeaths(int deaths) {
         this.deaths = deaths;
         recalculatePoints();
         flagForSave();
     }
-    
+
     public void setKothCaptures(int kothCaptures) {
         this.kothCaptures = kothCaptures;
         recalculatePoints();
@@ -470,18 +581,6 @@ public class Team {
 
     public void addKillstreakPoints(int killstreakPoints) {
         this.killstreakPoints += killstreakPoints;
-        recalculatePoints();
-        flagForSave();
-    }
-
-    public void setPlaytimePoints(int playtimePoints) {
-        this.playtimePoints = playtimePoints;
-        recalculatePoints();
-        flagForSave();
-    }
-
-    public void addPlaytimePoints(int playtimePoints) {
-        this.playtimePoints += playtimePoints;
         recalculatePoints();
         flagForSave();
     }
@@ -519,12 +618,12 @@ public class Team {
     }
 
     public void recalculateSpawnersInClaims() {
-	    new BukkitRunnable() {
-		    @Override
-		    public void run() {
-			    setSpawnersInClaim(findSpawners().size());
-		    }
-	    }.runTaskAsynchronously(Foxtrot.getInstance());
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                setSpawnersInClaim(findSpawners().size());
+            }
+        }.runTaskAsynchronously(Foxtrot.getInstance());
     }
 
     public List<CreatureSpawner> findSpawners() {
@@ -536,13 +635,13 @@ public class Team {
 
         // Iterate through chunks' tile entities rather than every block
         for (Claim claim : getClaims()) {
-            final World world = Bukkit.getWorld(claim.getWorld());
-            final Location minPoint = claim.getMinimumPoint();
-            final Location maxPoint = claim.getMaximumPoint();
-            final int minChunkX = ((int) minPoint.getX()) >> 4;
-            final int minChunkZ = ((int) minPoint.getZ()) >> 4;
-            final int maxChunkX = ((int) maxPoint.getX()) >> 4;
-            final int maxChunkZ = ((int) maxPoint.getZ()) >> 4;
+            World world = Bukkit.getWorld(claim.getWorld());
+            Location minPoint = claim.getMinimumPoint();
+            Location maxPoint = claim.getMaximumPoint();
+            int minChunkX = ((int) minPoint.getX()) >> 4;
+            int minChunkZ = ((int) minPoint.getZ()) >> 4;
+            int maxChunkX = ((int) maxPoint.getX()) >> 4;
+            int maxChunkZ = ((int) maxPoint.getZ()) >> 4;
 
             for (int chunkX = minChunkX; chunkX < maxChunkX + 1; chunkX++) {
                 for (int chunkZ = minChunkZ; chunkZ < maxChunkZ + 1; chunkZ++) {
@@ -554,10 +653,10 @@ public class Team {
                             // Even though we're iterating through chunks' tile entities
                             // we need to make sure that the block's location is within
                             // the claim (because claims don't have to align with chunks)
-                            final Location loc = blockState.getLocation();
+                            Location loc = blockState.getLocation();
 
                             if (loc.getX() >= minPoint.getX() && loc.getZ() >= minPoint.getZ() &&
-                                loc.getX() <= maxPoint.getX() && loc.getZ() <= maxPoint.getZ()) {
+                                    loc.getX() <= maxPoint.getX() && loc.getZ() <= maxPoint.getZ()) {
                                 list.add((CreatureSpawner) blockState);
                             }
                         }
@@ -575,24 +674,30 @@ public class Team {
         flagForSave();
     }
 
-	public void setSpentPoints(int points) {
-		spentPoints = points;
-		recalculatePoints();
-		flagForSave();
-	}
+    public void setSpentPoints(int points) {
+        spentPoints = points;
+        recalculatePoints();
+        flagForSave();
+    }
 
     public void recalculatePoints() {
         int basePoints = 0;
 
         basePoints += (Math.floor(kills / 5.0D)) * 10;
         basePoints -= (Math.floor(deaths / 5.0D)) * 15;
-        basePoints += kothCaptures * 50;
+        basePoints += kothCaptures * 20;
         basePoints += (diamondsMined / 500) * 15;
-        basePoints += citadelsCapped * 125;
+        basePoints += citadelsCapped * 150;
         basePoints += spawnersInClaim * 5;
         basePoints += killstreakPoints;
-        basePoints += playtimePoints;
         basePoints -= spentPoints;
+
+        if (Foxtrot.getInstance().getConfig().getBoolean("tiers")) {
+            basePoints += teamfightsWon * 5;
+        }
+
+        basePoints += kills;
+        basePoints -= deaths;
 
         if (basePoints < 0) {
             basePoints = 0;
@@ -611,8 +716,14 @@ public class Team {
         basePoints += (diamondsMined / 500) * 15;
         basePoints += spawnersInClaim * 5;
         basePoints += killstreakPoints;
-        basePoints += playtimePoints;
         basePoints -= spentPoints;
+
+        if (Foxtrot.getInstance().getConfig().getBoolean("tiers")) {
+            basePoints += teamfightsWon * 5;
+        }
+
+        basePoints += kills;
+        basePoints -= deaths;
 
         if (basePoints < 0) {
             basePoints = 0;
@@ -627,8 +738,8 @@ public class Team {
                 "Diamonds Mined Points: (" + diamondsMined + " mined / 500) * 15 = " + ((diamondsMined / 500) * 15),
                 "Spawners Points: (" + spawnersInClaim + " spawners) * 5 = " + (spawnersInClaim * 5),
                 "Killstreaks Points: " + killstreakPoints,
-                "Playtime Points: " + playtimePoints,
-                "Spent Points: " + spentPoints
+                "Spent Points: " + spentPoints,
+                "(Tier Maps Only) Teamfight Points: (" + teamfightsWon + " teamfights won * 5 = " + teamfightsWon * 5
         };
     }
 
@@ -682,7 +793,24 @@ public class Team {
         return (claims.contains(claim));
     }
 
+    public void sendWaypoint(UUID uuid) {
+        Player player = Bukkit.getPlayer(uuid);
+        if(player != null) {
+            if (this.Rally != null) CheatBreakerAPI.getInstance().sendWaypoint(player, this.Rally.getCbWaypoint());
+            if (this.HQWaypoint != null) CheatBreakerAPI.getInstance().sendWaypoint(player, this.HQWaypoint);
+        }
+    }
+
+    public void clearWaypoint(UUID uuid) {
+        Player player = Bukkit.getPlayer(uuid);
+        if(player != null) {
+            if (this.Rally != null) CheatBreakerAPI.getInstance().removeWaypoint(player, this.Rally.getCbWaypoint());
+            if (this.HQWaypoint != null) CheatBreakerAPI.getInstance().removeWaypoint(player, this.HQWaypoint);
+        }
+    }
+
     public boolean removeMember(UUID member) {
+        clearWaypoint(member);
         members.remove(member);
         captains.remove(member);
         coleaders.remove(member);
@@ -829,10 +957,19 @@ public class Team {
         return (getDTRIncrement(getOnlineMemberAmount()));
     }
 
-    public double getDTRIncrement(int playersOnline) {
-        double dtrPerHour = DTRHandler.getBaseDTRIncrement(getSize()) * playersOnline;
+    public double getDTRIncrement(int playersOnline, boolean offline) {
+        double dtrPerHour = DTRHandler.getMaxDTR(getSize());
         return (dtrPerHour / 60);
     }
+
+    public double getDTRIncrement(int playersOnline) {
+        return getDTRIncrement(playersOnline, false);
+    }
+
+    public double getMaxDTR(boolean offline) {
+        return (DTRHandler.getMaxDTR(getSize()));
+    }
+
 
     public double getMaxDTR() {
         return (DTRHandler.getMaxDTR(getSize()));
@@ -845,6 +982,9 @@ public class Team {
         if (obj.containsKey("CoLeaders")) for (Object coLeader : (BasicDBList) obj.get("CoLeaders")) addCoLeader(UUID.fromString((String) coLeader));
         if (obj.containsKey("Captains")) for (Object captain : (BasicDBList) obj.get("Captains")) addCaptain(UUID.fromString((String) captain));
         if (obj.containsKey("Members")) for (Object member : (BasicDBList) obj.get("Members")) addMember(UUID.fromString((String) member));
+        if (obj.containsKey("SubclaimPermissions")) for (Object sub : (BasicDBList) obj.get("SubclaimPermissions")) getSubclaimPermissions().add(UUID.fromString((String) sub));
+        if (obj.containsKey("RallyPermissions")) for (Object rally : (BasicDBList) obj.get("RallyPermissions")) getRallyPermissions().add(UUID.fromString((String) rally));
+        if (obj.containsKey("DisplayPermissions")) for (Object rally : (BasicDBList) obj.get("DisplayPermissions")) getDisplayPermissions().add(UUID.fromString((String) rally));
         if (obj.containsKey("Invitations")) for (Object invite : (BasicDBList) obj.get("Invitations")) getInvitations().add(UUID.fromString((String) invite));
         if (obj.containsKey("DTR")) setDTR(obj.getDouble("DTR"));
         if (obj.containsKey("DTRCooldown")) setDTRCooldown(obj.getDate("DTRCooldown").getTime());
@@ -856,7 +996,6 @@ public class Team {
         if (obj.containsKey("Lives")) setLives(obj.getInt("Lives"));
         if (obj.containsKey("Claims")) for (Object claim : (BasicDBList) obj.get("Claims")) getClaims().add(Claim.fromJson((BasicDBObject) claim));
         if (obj.containsKey("Subclaims")) for (Object subclaim : (BasicDBList) obj.get("Subclaims")) getSubclaims().add(Subclaim.fromJson((BasicDBObject) subclaim));
-        if (obj.containsKey("PlaytimePoints")) setPlaytimePoints(obj.getInt("PlaytimePoints"));
         if (obj.containsKey("SpentPoints")) setSpentPoints(obj.getInt("SpentPoints"));
         if (obj.containsKey("SpawnersInClaim")) setSpawnersInClaim(obj.getInt("SpawnersInClaim"));
 
@@ -908,6 +1047,18 @@ public class Team {
                     }
                 }
             } else if (identifier.equalsIgnoreCase("Invited")) {
+                for (String name : lineParts) {
+                    if (name.length() >= 2) {
+                        getInvitations().add(UUID.fromString(name.trim()));
+                    }
+                }
+            }  else if (identifier.equalsIgnoreCase("RallyPerms")) {
+                for (String name : lineParts) {
+                    if (name.length() >= 2) {
+                        getRallyPermissions().add(UUID.fromString(name.trim()));
+                    }
+                }
+            }  else if (identifier.equalsIgnoreCase("SubclaimPerms")) {
                 for (String name : lineParts) {
                     if (name.length() >= 2) {
                         getInvitations().add(UUID.fromString(name.trim()));
@@ -1037,12 +1188,12 @@ public class Team {
                 setCitadelsCapped(Integer.valueOf(lineParts[0]));
             } else if (identifier.equalsIgnoreCase("KillstreakPoints")) {
                 setKillstreakPoints(Integer.valueOf(lineParts[0]));
-            } else if (identifier.equalsIgnoreCase("PlaytimePoints")) {
-                setPlaytimePoints(Integer.valueOf(lineParts[0]));
             } else if (identifier.equalsIgnoreCase("Points")) {
-	            setPoints(Integer.valueOf(lineParts[0]));
+                setPoints(Integer.valueOf(lineParts[0]));
             } else if (identifier.equalsIgnoreCase("SpentPoints")) {
-				setSpentPoints(Integer.valueOf(lineParts[0]));
+                setSpentPoints(Integer.valueOf(lineParts[0]));
+            } else  if (identifier.equalsIgnoreCase("TeamfightsWon")) {
+                setTeamfightsWon(Integer.valueOf(lineParts[0]));
             } else if (identifier.equalsIgnoreCase("SpawnersInClaim")) {
                 setSpawnersInClaim(Integer.valueOf(lineParts[0]));
             } else if (identifier.equalsIgnoreCase("Upgrades")) {
@@ -1063,9 +1214,18 @@ public class Team {
             uniqueId = new ObjectId();
             Foxtrot.getInstance().getLogger().info("Generating UUID for team " + getName() + "...");
         }
-
+        setTeamColor(ChatUtils.randomChatColor());
         loading = false;
         needsSave = forceSave;
+    }
+
+    public boolean isRallyActive() {
+        return getRemainingRallyTime() > 0L;
+    }
+
+    public long getRemainingRallyTime() {
+        if(getRally() == null) return 0L;
+        return Math.max(0L, getRally().getTimeCreated() - System.currentTimeMillis());
     }
 
     public String saveString(boolean toJedis) {
@@ -1083,6 +1243,8 @@ public class Team {
         StringBuilder captains = new StringBuilder();
         StringBuilder coleaders = new StringBuilder();
         StringBuilder invites = new StringBuilder();
+        StringBuilder rallyPerms = new StringBuilder();
+        StringBuilder subclaimPerms = new StringBuilder();
         StringBuilder historicalMembers = new StringBuilder();
 
         for (UUID member : getMembers()) {
@@ -1099,6 +1261,14 @@ public class Team {
 
         for (UUID invite : getInvitations()) {
             invites.append(invite.toString()).append(", ");
+        }
+
+        for (UUID sub : getSubclaimPermissions()) {
+            subclaimPerms.append(sub.toString()).append(", ");
+        }
+
+        for (UUID rally : getRallyPermissions()) {
+            rallyPerms.append(rally.toString()).append(", ");
         }
 
         for (UUID member : getHistoricalMembers()) {
@@ -1137,6 +1307,9 @@ public class Team {
         teamString.append("Captains:").append(captains.toString()).append('\n');
         teamString.append("Members:").append(members.toString()).append('\n');
         teamString.append("Invited:").append(invites.toString().replace("\n", "")).append('\n');
+        teamString.append("SubclaimPerms:").append(subclaimPerms.toString().replace("\n", "")).append('\n');
+        teamString.append("RallyPerms:").append(rallyPerms.toString().replace("\n", "")).append('\n');
+        teamString.append("DisplayPerms:").append(displayPermissions.toString().replace("\n", "")).append('\n');
         teamString.append("Subclaims:").append(getSubclaims().toString().replace("\n", "")).append('\n');
         teamString.append("Claims:").append(getClaims().toString().replace("\n", "")).append('\n');
         teamString.append("Allies:").append(getAllies().toString()).append('\n');
@@ -1149,18 +1322,18 @@ public class Team {
         teamString.append("DTRCooldown:").append(getDTRCooldown()).append('\n');
         teamString.append("FriendlyName:").append(getName().replace("\n", "")).append('\n');
         teamString.append("Announcement:").append(String.valueOf(getAnnouncement()).replace("\n", "")).append("\n");
-        teamString.append("PowerFaction:").append(String.valueOf(isPowerFaction())).append("\n");
-        teamString.append("Lives:").append(String.valueOf(getLives())).append("\n");
-        teamString.append("Kills:").append(String.valueOf(getKills())).append("\n");
-        teamString.append("Deaths:").append(String.valueOf(getDeaths())).append("\n");
-        teamString.append("DiamondsMined:").append(String.valueOf(getDiamondsMined())).append("\n");
-        teamString.append("KothCaptures:").append(String.valueOf(getKothCaptures())).append("\n");
-        teamString.append("CitadelsCapped:").append(String.valueOf(getCitadelsCapped())).append("\n");
-        teamString.append("KillstreakPoints:").append(String.valueOf(getKillstreakPoints())).append("\n");
-        teamString.append("PlaytimePoints:").append(String.valueOf(getPlaytimePoints())).append("\n");
-	    teamString.append("Points:").append(String.valueOf(getPoints())).append("\n");
-	    teamString.append("SpentPoints:").append(String.valueOf(getSpentPoints())).append("\n");
-        teamString.append("SpawnersInClaim:").append(String.valueOf(getSpawnersInClaim())).append("\n");
+        teamString.append("PowerFaction:").append(isPowerFaction()).append("\n");
+        teamString.append("Lives:").append(getLives()).append("\n");
+        teamString.append("Kills:").append(getKills()).append("\n");
+        teamString.append("Deaths:").append(getDeaths()).append("\n");
+        teamString.append("DiamondsMined:").append(getDiamondsMined()).append("\n");
+        teamString.append("KothCaptures:").append(getKothCaptures()).append("\n");
+        teamString.append("CitadelsCapped:").append(getCitadelsCapped()).append("\n");
+        teamString.append("KillstreakPoints:").append(getKillstreakPoints()).append("\n");
+        teamString.append("Points:").append(getPoints()).append("\n");
+        teamString.append("TeamfightsWon").append(getTeamfightsWon()).append("\n");
+        teamString.append("SpentPoints:").append(getSpentPoints()).append("\n");
+        teamString.append("SpawnersInClaim:").append(getSpawnersInClaim()).append("\n");
         teamString.append("Upgrades:").append(upgrades.toString()).append("\n");
 
         if (getHQ() != null) {
@@ -1172,12 +1345,14 @@ public class Team {
 
     public BasicDBObject toJSON() {
         BasicDBObject dbObject = new BasicDBObject();
-        
+
         dbObject.put("Owner", getOwner() == null ? null : getOwner().toString());
         dbObject.put("CoLeaders", UUIDUtils.uuidsToStrings(getColeaders()));
         dbObject.put("Captains", UUIDUtils.uuidsToStrings(getCaptains()));
         dbObject.put("Members", UUIDUtils.uuidsToStrings(getMembers()));
         dbObject.put("Invitations", UUIDUtils.uuidsToStrings(getInvitations()));
+        dbObject.put("SubclaimPermissions", UUIDUtils.uuidsToStrings(getSubclaimPermissions()));
+        dbObject.put("RallyPermissions", UUIDUtils.uuidsToStrings(getRallyPermissions()));
         dbObject.put("Allies", getAllies());
         dbObject.put("RequestedAllies", getRequestedAllies());
         dbObject.put("DTR", getDTR());
@@ -1208,11 +1383,11 @@ public class Team {
         dbObject.put("DiamondsMined", this.diamondsMined);
         dbObject.put("CitadelsCaptured", this.citadelsCapped);
         dbObject.put("KillstreakPoints", this.killstreakPoints);
-        dbObject.put("PlaytimePoints", this.playtimePoints);
         dbObject.put("KothCaptures", this.kothCaptures);
-	    dbObject.put("Points", this.points);
-	    dbObject.put("SpentPoints", this.spentPoints);
-	    dbObject.put("SpawnersInClaim", this.spawnersInClaim);
+        dbObject.put("Points", this.points);
+        dbObject.put("TeamfightsWon", this.teamfightsWon);
+        dbObject.put("SpentPoints", this.spentPoints);
+        dbObject.put("SpawnersInClaim", this.spawnersInClaim);
 
         BasicDBList upgrades = new BasicDBList();
 
@@ -1224,7 +1399,7 @@ public class Team {
             upgrades.add(upgradeDBObject);
         }
 
-	    dbObject.put("Upgrades", upgrades);
+        dbObject.put("Upgrades", upgrades);
 
         return (dbObject);
     }
@@ -1288,6 +1463,7 @@ public class Team {
             }
 
             player.sendMessage(GRAY_LINE);
+
             return;
         }
 
@@ -1320,8 +1496,18 @@ public class Team {
             }
         }
 
+        Collection<Player> onlines = getOnlineMembers();
+        Collection<UUID> offlines = getOfflineMembers();
 
-        for (Player onlineMember : getOnlineMembers()) {
+        onlines.removeIf(p -> {
+            if (deathbanMap.isDeathbanned(p.getUniqueId())) {
+                offlines.add(p.getUniqueId());
+                return true;
+            }
+            return false;
+        });
+
+        for (Player onlineMember : onlines) {
             onlineMembers++;
 
             // There can only be one owner, so we special case it.
@@ -1345,7 +1531,7 @@ public class Team {
             appendTo.then("]").color(ChatColor.YELLOW);
         }
 
-        for (UUID offlineMember : getOfflineMembers()) {
+        for (UUID offlineMember : offlines) {
             if (isOwner(offlineMember)) {
                 continue;
             }
@@ -1376,9 +1562,20 @@ public class Team {
         teamLine.then().text(ChatColor.GRAY + " [" + onlineMembers + "/" + getSize() + "]" + ChatColor.DARK_AQUA + " - ");
         teamLine.then().text(ChatColor.YELLOW + "HQ: " + ChatColor.WHITE + (HQ == null ? "None" : HQ.getBlockX() + ", " + HQ.getBlockZ()));
 
-        if (HQ != null && player.hasPermission("basic.staff")) {
+        if (HQ != null && player.hasPermission("Basic.Staff")) {
             teamLine.command("/tppos " + HQ.getBlockX() + " " + HQ.getBlockY() + " " + HQ.getBlockZ());
             teamLine.tooltip("§aClick to warp to HQ");
+        }
+
+        if(isRallyActive() && (player.hasPermission("Basic.Staff") || isMember(player.getUniqueId()))) {
+            teamLine.then().text(ChatColor.DARK_AQUA + " - ");
+            teamLine.then().text(ChatColor.YELLOW + "Rally: " + ChatColor.WHITE + Rally.getLocation().getBlockX() + ", "  + Rally.getLocation().getBlockY() + ", " + Rally.getLocation().getBlockZ());
+
+            if (player.hasPermission("Basic.Staff")) {
+                teamLine.command("/tppos " + Rally.getLocation().getBlockX() + " " + Rally.getLocation().getBlockY() + " " + Rally.getLocation().getBlockZ());
+                teamLine.tooltip("§aClick to warp to Rally");
+            }
+
         }
 
         if (player.hasPermission("foxtrot.manage")) {
@@ -1392,7 +1589,7 @@ public class Team {
             player.sendMessage(ChatColor.YELLOW + "Allies: " + allies.toString());
         }
 
-        FancyMessage leader = new FancyMessage(ChatColor.YELLOW + "Leader: " + (owner == null || owner.hasMetadata("invisible") ? (deathbanMap.isDeathbanned(getOwner()) ? ChatColor.RED : ChatColor.GRAY) : ChatColor.GREEN) + UUIDUtils.name(getOwner()) + ChatColor.YELLOW + "[" + ChatColor.GREEN + killsMap.getKills(getOwner()) + ChatColor.YELLOW + "]");
+        FancyMessage leader = new FancyMessage(ChatColor.YELLOW + "Leader: " + (owner == null || owner.hasMetadata("invisible") ? (deathbanMap.isDeathbanned(getOwner()) ? ChatColor.RED : ChatColor.GRAY) : (deathbanMap.isDeathbanned(getOwner()) ? ChatColor.RED : ChatColor.GREEN)) + UUIDUtils.name(getOwner()) + ChatColor.YELLOW + "[" + ChatColor.GREEN + killsMap.getKills(getOwner()) + ChatColor.YELLOW + "]");
 
 
         if (player.hasPermission("foxtrot.manage")) {
@@ -1424,7 +1621,7 @@ public class Team {
         balance.send(player);
 
 
-        FancyMessage dtrMessage = new FancyMessage(ChatColor.YELLOW + "Deaths until Raidable: " + getDTRColor() + DTR_FORMAT.format(getDTR()) + getDTRSuffix());
+        FancyMessage dtrMessage = new FancyMessage(ChatColor.YELLOW + "DTR: " + getDTRColor() + DTR_FORMAT.format(getDTR()) + getDTRSuffix());
 
 
         if (player.hasPermission("foxtrot.manage")) {
@@ -1437,49 +1634,80 @@ public class Team {
             if (Foxtrot.getInstance().getServerHandler().isForceInvitesEnabled()) {
                 player.sendMessage(ChatColor.YELLOW + "Force Invites: " + ChatColor.RED + getForceInvites());
             }
-            player.sendMessage(ChatColor.YELLOW + "Points: " + ChatColor.RED + getPoints());
+
+            FancyMessage pointsMessage = new FancyMessage(CC.Color("§ePoints: §c" + getPoints()));
+
+            if (player.hasPermission("foxtrot.manage")) {
+                pointsMessage.command("/manageteam points " + getName()).tooltip("§bClick to modify team points");
+            }
+            pointsMessage.send(player);
+
             player.sendMessage(ChatColor.YELLOW + "KOTH Captures: " + ChatColor.RED + getKothCaptures());
-            player.sendMessage(ChatColor.YELLOW + "Lives: " + ChatColor.RED + getLives());
-            player.sendMessage(ChatColor.YELLOW + "Spawners: " + ChatColor.RED + getSpawnersInClaim());
-        }
+            //player.sendMessage(ChatColor.YELLOW + "Lives: " + ChatColor.RED + getLives());
 
-        if (DTRHandler.isOnCooldown(this)) {
-            if (!player.isOp()) {
-                player.sendMessage(ChatColor.YELLOW + "Time Until Regen: " + ChatColor.BLUE + TimeUtils.formatIntoDetailedString(((int) (getDTRCooldown() - System.currentTimeMillis())) / 1000).trim());
-            } else {
-                FancyMessage message = new FancyMessage(ChatColor.YELLOW + "Time Until Regen: ")
-                        .tooltip(ChatColor.GREEN + "Click to remove regeneration timer").command("/startdtrregen " + getName());
+            player.sendMessage(GRAY_LINE);
 
-                message.then(TimeUtils.formatIntoDetailedString(((int) (getDTRCooldown() - System.currentTimeMillis())) / 1000)).color(ChatColor.BLUE)
-                        .tooltip(ChatColor.GREEN + "Click to remove regeneration timer").command("/startdtrregen " + getName());
+            FancyMessage powerfactionmessage = new FancyMessage((CC.Color("§ePower Faction: §c" + isPowerFaction())));
 
-                message.send(player);
+            if (player.hasPermission("foxtrot.powerfaction")) {
+                if (isPowerFaction()) {
+                    powerfactionmessage.then().text(ChatColor.RED + "true");
+                    powerfactionmessage.command("/powerfaction remove" + getName());
+                    powerfactionmessage.tooltip("§bClick change faction to a non power faction.");
+
+                } else {
+
+                    powerfactionmessage.then().text(ChatColor.RED + "false");
+                    powerfactionmessage.command("/powerfaction add" + getName());
+                    powerfactionmessage.tooltip("§bClick change faction to a power faction.");
+
+                    player.sendMessage(ChatColor.YELLOW + "Spawners: " + ChatColor.RED + getSpawnersInClaim());
+                }
+
+                if (DTRHandler.isOnCooldown(this)) {
+                    if (!player.isOp()) {
+                        player.sendMessage(ChatColor.YELLOW + "Time Until Regen: " + ChatColor.BLUE + TimeUtils.formatIntoDetailedString(((int) (getDTRCooldown() - System.currentTimeMillis())) / 1000).trim());
+                    } else {
+                        FancyMessage message = new FancyMessage(ChatColor.YELLOW + "Time Until Regen: ")
+                                .tooltip(ChatColor.GREEN + "Click to remove regeneration timer").command("/startdtrregen " + getName());
+
+                        message.then(TimeUtils.formatIntoDetailedString(((int) (getDTRCooldown() - System.currentTimeMillis())) / 1000)).color(ChatColor.BLUE)
+                                .tooltip(ChatColor.GREEN + "Click to remove regeneration timer").command("/startdtrregen " + getName());
+
+                        message.send(player);
+                    }
+                    player.sendMessage(GRAY_LINE);
+                }
+
+                if (player.hasPermission("foxtrot.powerfactions")) {
+                    FancyMessage powerFactionLine = new FancyMessage();
+                    powerFactionLine.text(ChatColor.YELLOW + "Power Faction: ");
+                    if (isPowerFaction()) {
+                        powerFactionLine.then().text(ChatColor.GREEN + "True");
+                        powerFactionLine.command("/powerfaction remove " + getName());
+                        powerFactionLine.tooltip("§bClick change faction to a non power faction.");
+                    } else {
+                        powerFactionLine.then().text(ChatColor.RED + "False");
+                        powerFactionLine.command("/powerfaction add " + getName());
+                        powerFactionLine.tooltip("§bClick change faction to a power faction.");
+                    }
+                    powerFactionLine.send(player);
+                }
+
+                // Only show this if they're a member.
+                if (isMember(player.getUniqueId()) && announcement != null && !announcement.equals("null")) {
+                    player.sendMessage(ChatColor.YELLOW + "Announcement: " + ChatColor.LIGHT_PURPLE + announcement);
+                }
+
+                player.sendMessage(GRAY_LINE);
+                // .... and that is how we do a /f who.
+
+                if (Foxtrot.getInstance().getFDisplayMap().isToggled(player.getUniqueId()) && getOwner() != null && HQ != null && !isMember(player.getUniqueId()) && (isCoLeader(player.getUniqueId()) || isOwner(player.getUniqueId()))) {
+                    TeamDisplayCommand.teamDisplay(player, this);
+                }
+                player.sendMessage(GRAY_LINE);
             }
-        }
-
-        if(player.hasPermission("foxtrot.powerfactions")) {
-            FancyMessage powerFactionLine = new FancyMessage();
-            powerFactionLine.text(ChatColor.YELLOW + "Power Faction: ");
-            if( isPowerFaction() ) {
-                powerFactionLine.then().text(ChatColor.GREEN + "True");
-                powerFactionLine.command("/powerfaction remove " + getName());
-                powerFactionLine.tooltip("§bClick change faction to a non power faction.");
-            } else {
-                powerFactionLine.then().text(ChatColor.RED + "False");
-                powerFactionLine.command("/powerfaction add " + getName());
-                powerFactionLine.tooltip("§bClick change faction to a power faction.");
-            }
-            powerFactionLine.send(player);
-        }
-
-        // Only show this if they're a member.
-        if (isMember(player.getUniqueId()) && announcement != null && !announcement.equals("null")) {
-            player.sendMessage(ChatColor.YELLOW + "Announcement: " + ChatColor.LIGHT_PURPLE + announcement);
-        }
-
-        player.sendMessage(GRAY_LINE);
-        // .... and that is how we do a /f who.
-    }
+        }}
 
     @Override
     public int hashCode() {
@@ -1524,4 +1752,22 @@ public class Team {
         }
     }
 
+    public Team getFactionFocused(){
+        return this.factionFocused;
+    }
+
+    public void setFactionFocus(Team factionFocused){
+        this.factionFocused = factionFocused;
+    }
+
+    public void setFactionFocusedWP(Team targetTeam){
+        if (this.factionFocused != null){
+            CBWaypoint focusedTeamWaypoint = new CBWaypoint(targetTeam.getName() + "'s HQ", targetTeam.getHQ().getBlockX(), targetTeam.getHQ().getBlockY(), targetTeam.getHQ().getBlockZ(), targetTeam.getHQ().getWorld().getUID().toString(), -16776961, true, true);
+            getOnlineMembers().forEach(player -> {CheatBreakerAPI.getInstance().removeWaypoint(player, focusedTeamWaypoint);});
+            getOnlineMembers().forEach(player -> {CheatBreakerAPI.getInstance().sendWaypoint(player, focusedTeamWaypoint);});
+        }
+    }
+
+
 }
+

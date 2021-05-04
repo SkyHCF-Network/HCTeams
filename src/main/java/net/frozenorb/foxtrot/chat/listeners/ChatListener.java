@@ -40,7 +40,7 @@ public class ChatListener implements Listener {
             return Foxtrot.getInstance().getChatHandler().getCustomPrefix(uuid);
         }
         
-        return ChatColor.translateAlternateColorCodes('&', place == 1 ? "&8[&6#1&8]" : place == 2 ? "&8[&7#2&8]" : "&8[&f#3&8]");
+        return ChatColor.translateAlternateColorCodes('&', place == 1 ? "&8[&6#1&8] " : place == 2 ? "&8[&7#2&8] " : "&8[&f#3&8] ");
     }
     
     @EventHandler(priority = EventPriority.LOWEST) // this handler prevents people from getting banned for spam in faction (or ally) chat

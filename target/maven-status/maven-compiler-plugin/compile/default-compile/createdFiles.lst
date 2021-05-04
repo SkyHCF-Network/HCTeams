@@ -175,6 +175,7 @@ net\frozenorb\foxtrot\team\commands\team\TeamCommand.class
 net\frozenorb\foxtrot\team\menu\DemoteMembersMenu.class
 net\frozenorb\foxtrot\events\region\cavern\Cavern.class
 net\frozenorb\foxtrot\settings\menu\SettingsMenu.class
+net\frozenorb\foxtrot\team\commands\team\TeamDisplayCommand.class
 net\frozenorb\foxtrot\persist\maps\statistics\SplashPotionsBrewedMap.class
 net\frozenorb\foxtrot\commands\TeamManageCommand.class
 net\frozenorb\foxtrot\commands\KitCommand.class
@@ -215,6 +216,7 @@ net\frozenorb\foxtrot\listener\EntityPortalListener.class
 net\frozenorb\foxtrot\map\stats\StatsHandler$1.class
 net\frozenorb\foxtrot\blockshop\BlockShopCommand.class
 net\frozenorb\foxtrot\team\commands\team\subclaim\TeamSubclaimAddPlayerCommand.class
+net\frozenorb\foxtrot\team\FocusPoint.class
 net\frozenorb\foxtrot\listener\PortalTrapListener$1.class
 net\frozenorb\foxtrot\pvpclasses\pvpclasses\ArcherClass$1.class
 net\frozenorb\foxtrot\commands\FDToggleCommand.class
@@ -272,6 +274,7 @@ net\frozenorb\foxtrot\deathmessage\event\PlayerKilledEvent.class
 net\frozenorb\foxtrot\abilities\listeners\FakePearl.class
 net\frozenorb\foxtrot\events\citadel\commands\CitadelLoadLoottableCommand.class
 net\frozenorb\foxtrot\commands\DMCICommand.class
+net\frozenorb\foxtrot\team\RallyPoint.class
 net\frozenorb\foxtrot\team\menu\TeamManageMenu.class
 net\frozenorb\foxtrot\events\conquest\commands\conquest\ConquestCommand.class
 net\frozenorb\foxtrot\server\ServerHandler$2.class
@@ -321,6 +324,7 @@ net\frozenorb\foxtrot\listener\BlockRegenListener.class
 net\frozenorb\foxtrot\listener\ConquestRewardKeyListener$1.class
 net\frozenorb\foxtrot\server\commands\betrayer\BetrayerAddCommand.class
 net\frozenorb\foxtrot\pvpclasses\pvpclasses\BardClass$2.class
+net\frozenorb\foxtrot\team\commands\team\TeamFocusCommand.class
 net\frozenorb\foxtrot\settings\Setting$5.class
 net\frozenorb\foxtrot\commands\SpawnDragonCommand.class
 net\frozenorb\foxtrot\map\stats\StatsEntry.class
@@ -371,6 +375,7 @@ net\frozenorb\foxtrot\util\CC.class
 net\frozenorb\foxtrot\listener\SpawnListener$1.class
 net\frozenorb\foxtrot\map\kits\KitManager.class
 net\frozenorb\foxtrot\listener\BorderListener.class
+net\frozenorb\foxtrot\persist\maps\FDisplayMap.class
 net\frozenorb\foxtrot\team\commands\ResetForceInvitesCommand.class
 net\frozenorb\foxtrot\team\commands\team\TeamTopCommand.class
 net\frozenorb\foxtrot\deathmessage\util\MobUtil.class
@@ -428,6 +433,7 @@ net\frozenorb\foxtrot\server\RegionData.class
 net\frozenorb\foxtrot\listener\BlockConvenienceListener.class
 net\frozenorb\foxtrot\team\commands\team\TeamHQCommand.class
 net\frozenorb\foxtrot\events\citadel\events\CitadelActivatedEvent.class
+net\frozenorb\foxtrot\util\ChatUtils.class
 net\frozenorb\foxtrot\team\commands\team\TeamChatCommand.class
 net\frozenorb\foxtrot\crates\Crate.class
 net\frozenorb\foxtrot\team\commands\team\TeamAnnouncementCommand.class
@@ -445,6 +451,7 @@ net\frozenorb\foxtrot\team\Team$1.class
 net\frozenorb\foxtrot\protocol\SignGUIPacketAdaper.class
 net\frozenorb\foxtrot\map\killstreaks\velttypes\PermSpeed2.class
 net\frozenorb\foxtrot\commands\ReclaimCommand.class
+net\frozenorb\foxtrot\util\yml\LangsFile.class
 net\frozenorb\foxtrot\deathmessage\trackers\ArrowTracker$ArrowDamageByMob.class
 net\frozenorb\foxtrot\deathmessage\objects\MobDamage.class
 net\frozenorb\foxtrot\events\citadel\CitadelHandler.class

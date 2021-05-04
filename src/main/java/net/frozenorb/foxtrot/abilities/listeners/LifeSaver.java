@@ -30,7 +30,7 @@ public class LifeSaver implements Listener {
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             if (event.getClickedBlock() != null) {
                 if (Foxtrot.getInstance().getLifeSaver().onCooldown(p)) {
-                    event.getPlayer().sendMessage(CC.Color("&4&lLife Saver&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getLifeSaver().getRemainingMilis(event.getPlayer()) / 1000) + "&c!"));
+                    event.getPlayer().sendMessage(CC.Color("&b&lLife Saver&c is on cooldown for another&c&l " + TimeUtils.formatIntoDetailedString((int) Foxtrot.getInstance().getLifeSaver().getRemainingMilis(event.getPlayer()) / 1000) + "&c!"));
                     p.updateInventory();
                     event.setCancelled(true);
                     return;

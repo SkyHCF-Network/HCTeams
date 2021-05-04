@@ -23,6 +23,7 @@ public class TeamCommand {
                 "§e/t home §7- Teleport to your team home",
                 "§e/t stuck §7- Teleport out of enemy territory",
                 "§e/t deposit <amount§7|§eall> §7- Deposit money into your team balance",
+                "§e/t focus §7- Focus a specific team",
 
 
                 "",

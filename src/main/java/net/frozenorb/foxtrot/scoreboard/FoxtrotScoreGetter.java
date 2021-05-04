@@ -4,13 +4,17 @@ import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.sun.javafx.UnmodifiableArrayList;
 import net.frozenorb.basic.Basic;
 import net.frozenorb.command.TPSCommand;
+import net.frozenorb.foxtrot.nametag.ClientListener;
+import net.frozenorb.foxtrot.team.TeamHandler;
 import net.frozenorb.foxtrot.team.claims.LandBoard;
 import net.frozenorb.foxtrot.util.Cooldown;
 import net.frozenorb.foxtrot.util.Cooldowns;
+import net.frozenorb.foxtrot.util.yml.LangsFile;
 import net.frozenorb.qlib.util.TPSUtils;
 import net.frozenorb.qmodsuite.qModSuite;
 import org.bukkit.Bukkit;
@@ -47,8 +51,12 @@ import net.frozenorb.qlib.util.TimeUtils;
 import net.frozenorb.foxtrot.util.Cooldown;
 import org.spigotmc.TicksPerSecondCommand;
 
+import javax.naming.Name;
+
 public class FoxtrotScoreGetter implements ScoreGetter {
     private static DecimalFormat df = new DecimalFormat("0.00");
+//    private Object Team;
+
     public void getScores(LinkedList<String> scores, Player player) {
         String spawnTagScore = getSpawnTagScore(player);
         String enderpearlScore = getEnderpearlScore(player);
@@ -218,6 +226,24 @@ public class FoxtrotScoreGetter implements ScoreGetter {
 
             if (displayed == 0) {
                 scores.add("  &7No scores yet");
+            }
+            if (Foxtrot.getInstance().getTeamHandler().getTeam(player) != null) {
+                    Team team = Foxtrot.getInstance().getTeamHandler().getTeam(player);
+                    if (team.getFactionFocused() != null) {
+                        for (String sb : LangsFile.getConfig().getStringList("langs.scoreboard.type.teamFocus")) {
+                            Team focusedTeam = team.getFactionFocused();
+
+                            sb = sb.replace("%arrow%" , "\u00BB");
+                            sb = sb.replace("%team%", focusedTeam.getName());
+                            sb = sb.replace("%dtr%", ClientListener.getDTRColor(focusedTeam) + Team.DTR_FORMAT.format(focusedTeam.getDTR()) + ClientListener.getDTRSuffix(focusedTeam));
+                            sb = sb.replace("%online%", focusedTeam.getOnlineMemberAmount() + "");
+
+                            scores.add(sb);
+
+                        }
+
+                    }
+
             }
         }
 
@@ -398,5 +424,7 @@ public class FoxtrotScoreGetter implements ScoreGetter {
 
         return (null);
     }
+
+
 
 }

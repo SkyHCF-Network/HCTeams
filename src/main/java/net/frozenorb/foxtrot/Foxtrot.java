@@ -107,6 +107,7 @@ public class Foxtrot extends JavaPlugin {
     private StartingPvPTimerMap startingPvPTimerMap;
     @Getter
     private DeathsMap deathsMap;
+    @Getter private FDisplayMap fDisplayMap;
     @Getter
     private KillsMap killsMap;
     @Getter
@@ -278,7 +279,7 @@ public class Foxtrot extends JavaPlugin {
             world.setGameRuleValue("doFireTick", "false");
             world.setGameRuleValue("mobGriefing", "false");
             world.setGameRuleValue("doDaylightCycle", "false");
-            world.setTime(1200L);
+            world.setTime(10000L);
         }
 
 /*        if (getConfig().getBoolean("legions")) {
@@ -441,6 +442,7 @@ public class Foxtrot extends JavaPlugin {
         (deathbanMap = new DeathbanMap()).loadFromRedis();
         (PvPTimerMap = new PvPTimerMap()).loadFromRedis();
         (startingPvPTimerMap = new StartingPvPTimerMap()).loadFromRedis();
+        (fDisplayMap = new FDisplayMap()).loadFromRedis();
         (deathsMap = new DeathsMap()).loadFromRedis();
         (killsMap = new KillsMap()).loadFromRedis();
         (chatModeMap = new ChatModeMap()).loadFromRedis();

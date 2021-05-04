@@ -60,7 +60,6 @@ public class PlaytimeMap extends PersistMap<Long> {
                     Team team = Foxtrot.getInstance().getTeamHandler().getTeam(player);
 
                     if (team != null) {
-                        team.addPlaytimePoints(5);
                         team.sendMessage(ChatColor.GREEN + "Your team received 5 points thanks to " + ChatColor.AQUA + ChatColor.BOLD + player.getName() + ChatColor.GREEN + "'s play-time.");
                     }
 

@@ -21,10 +21,10 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
-public final class TeamActionTracker {
+public class TeamActionTracker {
 
     @Getter @Setter private static boolean databaseLogEnabled = true;
-    private static final File logFileRoot = new File(new File("foxlogs"), "teamactiontracker");
+    private static File logFileRoot = new File(new File("foxlogs"), "teamactiontracker");
 
     public static void logActionAsync(Team team, TeamActionType actionType, Map<String, Object> params) {
         if (team.isLoading()) {
@@ -66,9 +66,9 @@ public final class TeamActionTracker {
             teamLogFile.createNewFile();
 
             Files.append(
-                logLine.toString(),
-                teamLogFile,
-                Charsets.UTF_8
+                    logLine.toString(),
+                    teamLogFile,
+                    Charsets.UTF_8
             );
         } catch (IOException ex) {
             ex.printStackTrace();

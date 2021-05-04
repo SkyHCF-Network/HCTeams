@@ -51,6 +51,14 @@ public enum TeamActionType {
     DEMOTED_FROM_CAPTAIN(true),
     DEMOTED_FROM_CO_LEADER(true),
 
+    // Permission Changed
+    RALLY_PERMISSION_ADD(true),
+    RALLY_PERMISSION_REMOVE(true),
+    DISPLAY_PERMISSION_ADD(true),
+    DISPLAY_PERMISSION_REMOVE(true),
+    SUBCLAIM_PERMISSION_ADD(true),
+    SUBCLAIM_PERMISSION_REMOVE(true),
+
     // PvP Deaths
     MEMBER_KILLED_ENEMY_IN_PVP(true),
     MEMBER_KILLED_BY_ENEMY_IN_PVP(true),
